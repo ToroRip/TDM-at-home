@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 st.set_page_config(page_title="TDM PK Calculator", layout="wide")
 
-st.title("🧪 TDM PK Calculator (Excel VBA → Python)")
+st.title("🧪 TDM At Home")
 
 with st.expander("📘 Instructions", expanded=False):
     st.markdown(
