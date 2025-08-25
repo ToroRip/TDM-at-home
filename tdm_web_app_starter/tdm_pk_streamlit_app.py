@@ -7,11 +7,7 @@ import matplotlib.pyplot as plt
 
 st.set_page_config(page_title="TDM PK Calculator", layout="wide")
 
-<<<<<<< HEAD
 st.title("🧪 TDM At home")
-=======
-st.title("🧪 TDM At Home")
->>>>>>> 3283ca05fd538056fa20c1bf1587ed1d7d59886f
 
 with st.expander("📘 Instructions", expanded=False):
     st.markdown(
