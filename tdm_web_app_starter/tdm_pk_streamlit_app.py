@@ -5,13 +5,12 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from datetime
+import datetime, time, date
+
 st.set_page_config(page_title="TDM PK Calculator", layout="wide")
 
-<<<<<<< HEAD
 st.title("🧪 TDM At home")
-=======
-st.title("🧪 TDM At Home")
->>>>>>> 3283ca05fd538056fa20c1bf1587ed1d7d59886f
 
 with st.expander("📘 Instructions", expanded=False):
     st.markdown(
@@ -33,16 +32,26 @@ with st.expander("📘 Instructions", expanded=False):
 st.sidebar.header("Inputs")
 
 # Required inputs
-realCt = st.sidebar.number_input("Ctrough (mg/L) [required]", min_value=0.0, value=10.0, step=0.1, format="%.2f")
-dose = st.sidebar.number_input("Dose per administration (mg)", min_value=1.0, value=1000.0, step=10.0, format="%.0f")
-tau = st.sidebar.number_input("Dosing interval τ (hr)", min_value=0.1, value=12.0, step=0.5, format="%.1f")
-tinf = st.sidebar.number_input("Infusion time (hr) [use 0 for Bolus]", min_value=0.0, value=1.0, step=0.25, format="%.2f")
+weight = st.sidebar.number_input("Weight (kg)", min_value=1.0, step=0.5, format="%.1f")
+dose = st.sidebar.number_input("Dose per administration (mg)", min_value=1.0, step=10.0, format="%.0f")
+tau = st.sidebar.number_input("Dosing interval τ (hr)", min_value=0.1, step=1.0, format="%.1f")
+tinf = st.sidebar.number_input("Infusion time (hr) [use 0 for Bolus]", min_value=0.0, step=0.5, format="%.2f")
 modelUsed = st.sidebar.selectbox("Model", options=["Bolus", "Infusion"], index=1)
-weight = st.sidebar.number_input("Weight (kg)", min_value=1.0, value=70.0, step=0.5, format="%.1f")
+realCt = st.sidebar.number_input("Ctrough (mg/L) [required]", min_value=0.0, step=0.1, format="%.2f")
+trough_date = st.sidebar.date_input("Trough sample date", value=date.today())
+trough_time = st.sidebar.time_input("Trough sample time", value=time(17, 30))
 
 # Optional inputs
 realCp_opt = st.sidebar.text_input("Cpeak (mg/L) [optional; blank to infer]")
 Ct_target = st.sidebar.number_input("Target trough (mg/L)", min_value=0.1, value=15.0, step=0.5, format="%.1f")
+peak_date  = st.sidebar.date_input("Peak sample date", value=date.today())
+peak_time  = st.sidebar.time_input("Peak sample time", value=time(9, 0))
+peak_dt   = datetime.combine(peak_date, peak_time)
+trough_dt = datetime.combine(trough_date, trough_time)
+delta_t_hours = (trough_dt - peak_dt).total_seconds() / 3600.0
+if delta_t_hours <= 0:
+    st.sidebar.error("Trough must be after Peak. Adjust the dates/times.")
+    st.stop()
 tStart = st.sidebar.number_input("Plot start time tStart (hr)", min_value=0.0, value=0.0, step=0.5, format="%.1f")
 custom_suggested_tau = st.sidebar.text_input("Override Suggested Interval (hr) [optional]")
 
@@ -66,7 +75,7 @@ def ceiling_precise(x, step):
     m = math.ceil(x / step)
     return m * step
 
-def estimate_params(realCt, realCp, dose, tau, tinf, modelUsed, weight):
+def estimate_params(realCt, realCp, dose, tau, tinf, modelUsed, weight, delta_t_hours=None):
     # Returns dict with ke, vd, Cl, realCp_used, halfLife; raises ValueError on invalid
     if realCt <= 0:
         raise ValueError("Ctrough must be > 0.")
@@ -85,8 +94,11 @@ def estimate_params(realCt, realCp, dose, tau, tinf, modelUsed, weight):
         Cl = ke * vd
     else:
         realCp_used = realCp
-        # VBA uses a fixed 2.5 hr between peak and trough sample when Cp provided
-        ke = math.log(realCp_used / realCt) / 2.5
+
+        if delta_t_hours is None or delta_t_hours <= 0:
+            raise ValueError("Elapsed time between Peak and Trough must be > 0 when Cpeak is provided.")
+        ke = math.log(realCp_used / realCt) / float(delta_t_hours)
+        
         if modelUsed == "Bolus":
             # vd from trough at time (tau - 0.5) hr post-dose at steady state
             # Rearranged from Ct = (dose/vd)*exp(-ke*(tau-0.5)) / (1 - exp(-ke*tau))
@@ -220,6 +232,11 @@ try:
     newDose = dose * (Ct_target / modelCt2)
     predictedCpeak = predict_Cpeak_adjusted(newDose, suggestedTau, tinf, ke, vd, Cl, modelUsed)
 
+    # === Calculate AUC ===
+    daily_dose = dose * (24 / tau)   # total dose per day
+    auc = daily_dose / Cl
+
+
     # Prepare outputs
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -230,6 +247,9 @@ try:
         st.subheader("Disposition")
         st.metric("Vd (L)", f"{vd:.2f}")
         st.metric("Cl (L/hr)", f"{Cl:.2f}")
+        st.metric("AUC (mg·hr/L)", f"{auc:.2f}")
+
+        
     with col3:
         st.subheader("Dosing")
         st.metric("Suggested Interval (hr)", f"{suggestedTau:.2f}")
