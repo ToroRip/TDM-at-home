@@ -77,7 +77,7 @@ def ceiling_precise(x, step):
     m = math.ceil(x / step)
     return m * step
 
-def estimate_params(realCt, realCp, dose, tau, tinf, modelUsed, weight, delta_t_hours):
+def estimate_params(realCt, realCp, dose, tau, tinf, modelUsed, weight, delta_t_hours = none):
     # Returns dict with ke, vd, Cl, realCp_used, halfLife; raises ValueError on invalid
     if realCt <= 0:
         raise ValueError("Ctrough must be > 0.")
