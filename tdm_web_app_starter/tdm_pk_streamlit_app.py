@@ -47,7 +47,7 @@ peak_date  = st.sidebar.date_input("Peak sample date", value=date.today())
 peak_time  = st.sidebar.time_input("Peak sample time", value=time(9, 0))
 peak_dt   = datetime.combine(peak_date, peak_time)
 trough_dt = datetime.combine(trough_date, trough_time)
-delta_t_hours = (trough_dt - peak_dt).total_seconds() / 3600.0
+delta_t_hours = abs((trough_dt - peak_dt).total_seconds() / 3600.0)
 if delta_t_hours <= 0:
     st.sidebar.error("Trough must be after Peak. Adjust the dates/times.")
     st.stop()
