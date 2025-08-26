@@ -48,23 +48,25 @@ realCp_opt = st.sidebar.text_input("Cpeak (mg/L) [optional; blank to infer]")
 Ct_target = st.sidebar.number_input("Target trough (mg/L)", min_value=0.1, value=15.0, step=0.5, format="%.1f")
 peak_date  = st.sidebar.date_input("Peak sample date", value=date.today())
 peak_time  = st.sidebar.time_input("Peak sample time", value=time(9, 0))
-peak_dt   = datetime.combine(peak_date, peak_time)
-trough_dt = datetime.combine(trough_date, trough_time)
-delta_t_hours = abs((trough_dt - peak_dt).total_seconds() / 3600.0)
-if delta_t_hours <= 0:
-    st.sidebar.error("Trough must be after Peak. Adjust the dates/times.")
-    st.stop()
-tStart = st.sidebar.number_input("Plot start time tStart (hr)", min_value=0.0, value=0.0, step=0.5, format="%.1f")
-custom_suggested_tau = st.sidebar.text_input("Override Suggested Interval (hr) [optional]")
 
-# Validate Cpeak input
+# Build datetimes and compute elapsed hours (trough minus peak)
+peak_dt   = datetime.datetime.combine(peak_date, peak_time)
+trough_dt = datetime.datetime.combine(trough_date, trough_time)
+raw_delta_hours = (trough_dt - peak_dt).total_seconds() / 3600.0
+
+# Parse optional Cpeak and set delta_t_hours only when Cp is provided
 realCp = None
+delta_t_hours = None
 if realCp_opt.strip() != "":
     try:
         realCp = float(realCp_opt)
         if realCp <= 0:
             st.sidebar.error("Cpeak must be positive if provided.")
             st.stop()
+        if raw_delta_hours <= 0:
+            st.sidebar.error("Trough must be after Peak. Adjust the dates/times.")
+            st.stop()
+        delta_t_hours = raw_delta_hours
     except Exception:
         st.sidebar.error("Invalid Cpeak: must be numeric or blank.")
         st.stop()
@@ -77,7 +79,7 @@ def ceiling_precise(x, step):
     m = math.ceil(x / step)
     return m * step
 
-def estimate_params(realCt, realCp, dose, tau, tinf, modelUsed, weight, delta_t_hours):
+def estimate_params(realCt, realCp, dose, tau, tinf, modelUsed, weight, delta_t_hours=None):
     # Returns dict with ke, vd, Cl, realCp_used, halfLife; raises ValueError on invalid
     if realCt <= 0:
         raise ValueError("Ctrough must be > 0.")
@@ -211,7 +213,7 @@ try:
         st.warning(f"Current infusion time ({tinf:.2f} hr) is too short for safe rate (≤ 10 mg/min). Suggested minimum: **{rounded_tinf:.2f} hr**")
 
     # Estimate PK parameters
-    res = estimate_params(realCt, realCp, dose, tau, tinf, modelUsed, weight)
+    res = estimate_params(realCt, realCp, dose, tau, tinf, modelUsed, weight, delta_t_hours)
     ke = res["ke"]; vd = res["vd"]; Cl = res["Cl"]; realCp_used = res["realCp_used"]; halfLife = res["halfLife"]
 
     # Suggested interval
