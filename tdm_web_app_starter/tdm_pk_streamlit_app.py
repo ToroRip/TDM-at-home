@@ -5,8 +5,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from datetime
-import datetime, time, date
+from datetime import datetime, time, date
 
 st.set_page_config(page_title="TDM PK Calculator", layout="wide")
 
@@ -24,7 +23,10 @@ with st.expander("📘 Instructions", expanded=False):
         **Notes**
         - Units assumed: dose in **mg**, weight in **kg**, times in **hours**, concentrations in **mg/L**.
         - Model options: **Bolus** or **Infusion** (intermittent infusion).
-        - If **Cpeak** is blank, we infer it using Vd = 0.7 * weight (same assumption as your VBA).
+        - If **Cpeak** is blank, we infer it using Vd = 0.7 * weight.
+
+        This program is made for academic purpose only. 
+        If you belive the program and cause any harm to the others i will not respond any consequence so you are the one who go to jail not me :)
         """
     )
 
@@ -75,7 +77,7 @@ def ceiling_precise(x, step):
     m = math.ceil(x / step)
     return m * step
 
-def estimate_params(realCt, realCp, dose, tau, tinf, modelUsed, weight, delta_t_hours=None):
+def estimate_params(realCt, realCp, dose, tau, tinf, modelUsed, weight, delta_t_hours):
     # Returns dict with ke, vd, Cl, realCp_used, halfLife; raises ValueError on invalid
     if realCt <= 0:
         raise ValueError("Ctrough must be > 0.")
@@ -98,7 +100,7 @@ def estimate_params(realCt, realCp, dose, tau, tinf, modelUsed, weight, delta_t_
         if delta_t_hours is None or delta_t_hours <= 0:
             raise ValueError("Elapsed time between Peak and Trough must be > 0 when Cpeak is provided.")
         ke = math.log(realCp_used / realCt) / float(delta_t_hours)
-        
+
         if modelUsed == "Bolus":
             # vd from trough at time (tau - 0.5) hr post-dose at steady state
             # Rearranged from Ct = (dose/vd)*exp(-ke*(tau-0.5)) / (1 - exp(-ke*tau))
