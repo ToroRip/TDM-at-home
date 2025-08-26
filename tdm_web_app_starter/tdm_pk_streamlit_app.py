@@ -241,9 +241,16 @@ try:
     newDose = dose * (Ct_target / modelCt2)
     predictedCpeak = predict_Cpeak_adjusted(newDose, suggestedTau, tinf, ke, vd, Cl, modelUsed)
 
+    # Predicted trough for the CURRENT regimen (model at 0.5 hr before next dose)
+    predictedCt_current = model_predicted_Ctrough(dose, tau, tinf, ke, vd, Cl, modelUsed)
+
     # === Calculate AUC ===
     daily_dose = dose * (24 / tau)   # total dose per day
     auc = daily_dose / Cl
+
+    # AUC for the ADJUSTED regimen (new dose & suggested interval)
+    new_daily_dose = newDose * (24 / suggestedTau)
+    auc_new = new_daily_dose / Cl
 
 
     # Prepare outputs
@@ -256,7 +263,7 @@ try:
         st.subheader("Disposition")
         st.metric("Vd (L)", f"{vd:.2f}")
         st.metric("Cl (L/hr)", f"{Cl:.2f}")
-        st.metric("AUC (mg·hr/L)", f"{auc:.2f}")
+        st.metric("AUC (Current) (mg·hr/L)", f"{auc:.2f}")
 
         
     with col3:
@@ -264,6 +271,8 @@ try:
         st.metric("Suggested Interval (hr)", f"{suggestedTau:.2f}")
         st.metric("Adjusted Dose (mg) → Ct = {:.1f}".format(Ct_target), f"{newDose:.0f}")
         st.metric("Predicted Adjusted Cpeak (mg/L)", f"{predictedCpeak:.2f}")
+        st.metric("Predicted Ct (current) (mg/L)", f"{predictedCt_current:.2f}")
+        st.metric("AUC (adjusted) (mg·hr/L)", f"{auc_new:.2f}")
 
     st.info(f"Suggested **tinf** to keep ≤ 10 mg/min: **{rounded_tinf:.2f} hr** (raw minimum: {min_inf_hr:.2f} hr)")
 
@@ -290,11 +299,34 @@ try:
 
     # Table of key values
     df = pd.DataFrame({
-        "Parameter": ["Ke (/hr)", "Half-life (hr)", "Vd (L)", "Cl (L/hr)", "Suggested τ (hr)", "Adjusted Dose (mg)",
-                      "Predicted Adjusted Cpeak (mg/L)", "Inferred/Used Cpeak (mg/L)"],
-        "Value": [round(ke,4), round(halfLife,2), round(vd,2), round(Cl,2), round(suggestedTau,2), round(newDose,0),
-                  round(predictedCpeak,2), round(realCp_used,2)]
-    })
+    "Parameter": [
+        "Ke (/hr)",
+        "Half-life (hr)",
+        "Vd (L)",
+        "Cl (L/hr)",
+        "Suggested τ (hr)",
+        "Adjusted Dose (mg)",
+        "Predicted Adjusted Cpeak (mg/L)",
+        "Predicted Ct (current) (mg/L)",
+        "AUC (current) (mg·hr/L)",
+        "AUC (adjusted) (mg·hr/L)",
+        "Inferred/Used Cpeak (mg/L)"
+    ],
+    "Value": [
+        round(ke, 4),
+        round(halfLife, 2),
+        round(vd, 2),
+        round(Cl, 2),
+        round(suggestedTau, 2),
+        round(newDose, 0),
+        round(predictedCpeak, 2),
+        round(predictedCt_current, 2),
+        round(auc, 2),
+        round(auc_new, 2),
+        round(realCp_used, 2)
+    ]
+})
+
     st.subheader("Summary")
     st.dataframe(df, use_container_width=True)
 
