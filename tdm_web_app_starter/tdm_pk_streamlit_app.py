@@ -50,8 +50,8 @@ peak_date  = st.sidebar.date_input("Peak sample date", value=date.today())
 peak_time  = st.sidebar.time_input("Peak sample time", value=time(9, 0))
 
 # Build datetimes and compute elapsed hours (trough minus peak)
-peak_dt   = datetime.datetime.combine(peak_date, peak_time)
-trough_dt = datetime.datetime.combine(trough_date, trough_time)
+peak_dt   = datetime.combine(peak_date, peak_time)
+trough_dt = datetime.combine(trough_date, trough_time)
 raw_delta_hours = (trough_dt - peak_dt).total_seconds() / 3600.0
 
 # Parse optional Cpeak and set delta_t_hours only when Cp is provided
