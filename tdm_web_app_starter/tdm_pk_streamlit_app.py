@@ -5,8 +5,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from datetime
-import datetime, time, date
+from datetime import datetime, time, date
 
 st.set_page_config(page_title="TDM PK Calculator", layout="wide")
 
