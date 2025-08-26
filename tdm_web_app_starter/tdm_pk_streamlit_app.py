@@ -54,6 +54,10 @@ peak_dt   = datetime.combine(peak_date, peak_time)
 trough_dt = datetime.combine(trough_date, trough_time)
 raw_delta_hours = (trough_dt - peak_dt).total_seconds() / 3600.0
 
+# Others
+tStart = st.sidebar.number_input("Plot start time tStart (hr)", min_value=0.0, value=0.0, step=0.5, format="%.1f")
+custom_suggested_tau = st.sidebar.text_input("Override Suggested Interval (hr) [optional]")
+
 # Parse optional Cpeak and set delta_t_hours only when Cp is provided
 realCp = None
 delta_t_hours = None
