@@ -15,10 +15,9 @@ with st.expander("📘 Instructions", expanded=False):
     st.markdown(
         """
         **What this does**
-        - Converts your Excel/VBA macro into a web UI built with Python (Streamlit).
         - Estimates PK parameters (Ke, Vd, Cl, Half-life), suggests safe infusion time, suggests dosing interval,
           and calculates a new dose to target a desired trough (default 15 mg/L).
-        - Plots steady-state concentration–time curves for the current vs. adjusted regimen.
+        - Plots steady-state concentration–time curves for the current vs. adjusted regimen (Still working on it).
 
         **Notes**
         - Units assumed: dose in **mg**, weight in **kg**, times in **hours**, concentrations in **mg/L**.
@@ -26,7 +25,9 @@ with st.expander("📘 Instructions", expanded=False):
         - If **Cpeak** is blank, we infer it using Vd = 0.7 * weight.
 
         This program is made for academic purpose only. 
-        If you belive the program and cause any harm to the others i will not respond any consequence so you are the one who go to jail not me :)
+        If you belive the program and cause any harm to the others i will not take any respondsibility for any consequence
+       
+         ** Remember : You are the one who go to jail na. Not me :) **
         """
     )
 
